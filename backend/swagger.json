@@ -1,0 +1,567 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+      "title": "Authentication API",
+      "description": "API for user authentication, registration, password management, and OAuth integration.",
+      "version": "1.0.0"
+    },
+    "servers": [
+      {
+        "url": "http://localhost:3000/api/auth",
+        "description": "Local development server"
+      }
+    ],
+    "paths": {
+      "/register": {
+        "post": {
+          "summary": "Register a new user",
+          "description": "Registers a new user with the provided details and sends a confirmation email.",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisterUser"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "User registered successfully. Confirmation email sent.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/RegisterResponse"
+                  }
+                }
+              }
+            },
+            "409": {
+              "description": "Email already exists."
+            },
+            "400": {
+              "description": "Invalid input data."
+            }
+          }
+        }
+      },
+      "/register/confirm/{token}": {
+        "get": {
+          "summary": "Confirm user email",
+          "description": "Confirms a user's email address using the provided token and generates access and refresh tokens.",
+          "parameters": [
+            {
+              "name": "token",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Email confirmed successfully. Tokens generated.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ConfirmEmailResponse"
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Invalid or expired token."
+            }
+          }
+        }
+      },
+      "/token": {
+        "post": {
+          "summary": "Refresh access token",
+          "description": "Generates a new access token using a valid refresh token.",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefreshTokenRequest"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Access token refreshed successfully.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/RefreshTokenResponse"
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized: Token is missing."
+            },
+            "403": {
+              "description": "Forbidden: Invalid token."
+            }
+          }
+        }
+      },
+      "/login": {
+        "post": {
+          "summary": "User login",
+          "description": "Authenticates a user and returns access and refresh tokens.",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginUser"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Login successful. Tokens generated.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/LoginResponse"
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "Email not found."
+            },
+            "401": {
+              "description": "Incorrect password."
+            },
+            "403": {
+              "description": "Email not confirmed."
+            }
+          }
+        }
+      },
+      "/google": {
+        "get": {
+          "summary": "Google OAuth login",
+          "description": "Redirects the user to Google for OAuth authentication.",
+          "responses": {
+            "302": {
+              "description": "Redirect to Google OAuth."
+            }
+          }
+        }
+      },
+      "/google/callback": {
+        "get": {
+          "summary": "Google OAuth callback",
+          "description": "Handles the callback from Google OAuth and authenticates the user.",
+          "responses": {
+            "200": {
+              "description": "Authenticated successfully. Tokens generated.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/OAuthResponse"
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Authentication failed."
+            }
+          }
+        }
+      },
+      "/facebook": {
+        "get": {
+          "summary": "Facebook OAuth login",
+          "description": "Redirects the user to Facebook for OAuth authentication.",
+          "responses": {
+            "302": {
+              "description": "Redirect to Facebook OAuth."
+            }
+          }
+        }
+      },
+      "/facebook/callback": {
+        "get": {
+          "summary": "Facebook OAuth callback",
+          "description": "Handles the callback from Facebook OAuth and authenticates the user.",
+          "responses": {
+            "200": {
+              "description": "Authenticated successfully. Tokens generated.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/OAuthResponse"
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Authentication failed."
+            }
+          }
+        }
+      },
+      "/logout": {
+        "post": {
+          "summary": "User logout",
+          "description": "Logs out the user and revokes the access token.",
+          "security": [
+            {
+              "BearerAuth": []
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Logged out successfully."
+            },
+            "404": {
+              "description": "User not found."
+            }
+          }
+        }
+      },
+      "/resetPassword": {
+        "post": {
+          "summary": "Request password reset",
+          "description": "Sends a password reset link to the user's email.",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForgetPasswordRequest"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Password reset email sent. Check your inbox."
+            },
+            "404": {
+              "description": "Email not found."
+            }
+          }
+        }
+      },
+      "/resetPassword/{token}": {
+        "get": {
+          "summary": "Verify password reset token",
+          "description": "Verifies the password reset token.",
+          "parameters": [
+            {
+              "name": "token",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Token is valid. Proceed to reset password."
+            },
+            "400": {
+              "description": "Invalid or expired token."
+            }
+          }
+        },
+        "post": {
+          "summary": "Reset user password",
+          "description": "Resets the user's password using the provided token.",
+          "parameters": [
+            {
+              "name": "token",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResetPasswordRequest"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Password reset successfully."
+            },
+            "400": {
+              "description": "Invalid or expired token."
+            }
+          }
+        }
+      }
+    },
+    "components": {
+      "schemas": {
+        "RegisterUser": {
+          "type": "object",
+          "properties": {
+            "username": {
+              "type": "string",
+              "minLength": 3,
+              "pattern": "^[A-Za-z0-9\\s]+$",
+              "example": "john_doe"
+            },
+            "email": {
+              "type": "string",
+              "format": "email",
+              "example": "john.doe@example.com"
+            },
+            "password": {
+              "type": "string",
+              "minLength": 8,
+              "pattern": "^(?=.[a-z])(?=.[A-Z])(?=.\\d)(?=.[\\w]).+$",
+              "example": "Password_123"
+            },
+            "confirmPassword": {
+              "type": "string",
+              "minLength": 8,
+              "pattern": "^(?=.[a-z])(?=.[A-Z])(?=.\\d)(?=.[\\w]).+$",
+              "example": "Password_123"
+            }
+          },
+          "required": ["username", "email", "password", "confirmPassword"]
+        },
+        "RegisterResponse": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "example": "success"
+            },
+            "message": {
+              "type": "string",
+              "example": "Please, confirm your email"
+            },
+            "data": {
+              "type": "object",
+              "properties": {
+                "user": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          }
+        },
+        "ConfirmEmailResponse": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "example": "success"
+            },
+            "message": {
+              "type": "string",
+              "example": "Email is confirmed"
+            },
+            "data": {
+              "type": "object",
+              "properties": {
+                "accessToken": {
+                  "type": "string",
+                  "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                },
+                "refreshToken": {
+                  "type": "string",
+                  "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                },
+                "user": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          }
+        },
+        "RefreshTokenRequest": {
+          "type": "object",
+          "properties": {
+            "token": {
+              "type": "string",
+              "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+            }
+          },
+          "required": ["token"]
+        },
+        "RefreshTokenResponse": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "example": "success"
+            },
+            "message": {
+              "type": "string",
+              "example": "New access token generated successfully"
+            },
+            "data": {
+              "type": "object",
+              "properties": {
+                "accessToken": {
+                  "type": "string",
+                  "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                }
+              }
+            }
+          }
+        },
+        "LoginUser": {
+          "type": "object",
+          "properties": {
+            "email": {
+              "type": "string",
+              "format": "email",
+              "example": "john.doe@example.com"
+            },
+            "password": {
+              "type": "string",
+              "example": "password123"
+            }
+          },
+          "required": ["email", "password"]
+        },
+        "LoginResponse": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "example": "success"
+            },
+            "message": {
+              "type": "string",
+              "example": "Login successful"
+            },
+            "data": {
+              "type": "object",
+              "properties": {
+                "accessToken": {
+                  "type": "string",
+                  "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                },
+                "refreshToken": {
+                  "type": "string",
+                  "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                }
+              }
+            }
+          }
+        },
+        "OAuthResponse": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "example": "success"
+            },
+            "message": {
+              "type": "string",
+              "example": "Authenticated successfully"
+            },
+            "data": {
+              "type": "object",
+              "properties": {
+                "accessToken": {
+                  "type": "string",
+                  "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                },
+                "refreshToken": {
+                  "type": "string",
+                  "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                },
+                "user": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          }
+        },
+        "ForgetPasswordRequest": {
+          "type": "object",
+          "properties": {
+            "email": {
+              "type": "string",
+              "format": "email",
+              "example": "john.doe@example.com"
+            }
+          },
+          "required": ["email"]
+        },
+        "ResetPasswordRequest": {
+          "type": "object",
+          "properties": {
+            "newPassword": {
+              "type": "string",
+              "minLength": 8,
+              "pattern": "^(?=.[a-z])(?=.[A-Z])(?=.\\d)(?=.[\\w]).+$",
+              "example": "Password_123"
+            },
+            "confirmNewPassword": {
+              "type": "string",
+              "minLength": 8,
+              "pattern": "^(?=.[a-z])(?=.[A-Z])(?=.\\d)(?=.[\\w]).+$",
+              "example": "Password_123"
+            }
+          },
+          "required": ["newPassword", "confirmNewPassword"]
+        },
+        "User": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "example": "64f7a9b2b3c4d5e6f7a8b9c0"
+            },
+            "username": {
+              "type": "string",
+              "example": "john_doe"
+            },
+            "email": {
+              "type": "string",
+              "format": "email",
+              "example": "john.doe@example.com"
+            },
+            "refreshToken": {
+                "type": "string"
+            }
+            ,
+            "role": {
+              "type": "string",
+              "enum": ["ADMIN", "SUBSCRIBER"],
+              "example": "SUBSCRIBER"
+            },
+            "isConfirmed": {
+              "type": "boolean",
+              "example": true
+            }
+          }
+        }
+      },
+      "securitySchemes": {
+        "BearerAuth": {
+          "type": "http",
+          "scheme": "bearer",
+          "bearerFormat": "JWT"
+        }
+      }
+    }
+  }
