@@ -8,7 +8,11 @@ const {
 } = require("../utils/generateJWT");
 const { v4 } = require("uuid");
 const { sendMail } = require("../services/mailService");
-const { revokeAccessToken } = require("../utils/blackList");
+const forgetPasswordEmail = require("../emails/forgetPasswordEmail");
+const goodbyeEmail = require("../emails/goodbyeEmail");
+const registerEmail = require("../emails/registerEmail");
+const confirmUpdateEmail = require("../emails/confirmUpdateEmail");
+const casheService = require("../services/redis");
 
 const register = async (req, res, next) => {
   const { username, email, password, confirmPassword } = req.body;
@@ -20,29 +24,19 @@ const register = async (req, res, next) => {
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
-  const registerationToken = v4();
+  const verificationToken = v4();
 
   const newUser = new User({
     username,
     email,
     password: hashedPassword,
-    registerationToken,
+    verificationToken,
   });
 
   await newUser.save();
 
-  const output = `<p>Hi <strong>${newUser.username}</strong>,</p> 
-    <p>Thank you for registering with <strong>[Fit Mate]</strong>.</p> 
-    <p>Please use the following link to complete your registration:</p> 
-    <p style="font-size: 18px; color: blue;"> 
-        <a href="http://localhost:3000/api/auth/register/confirm/${newUser.registerationToken}" target="_blank">
-            Complete Registration
-        </a>
-    </p> 
-    <p>If you did not request this, please ignore this email.</p> 
-    <p>Best regards,<br>Fit Mate</p>`;
-
-  await sendMail(newUser, output);
+  const output = registerEmail(newUser.username, newUser.verificationToken);
+  await sendMail(newUser, output, "Verification email");
 
   res.status(201).json({
     status: "success",
@@ -54,7 +48,7 @@ const register = async (req, res, next) => {
 const login = async (req, res, next) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email });
-  if (!user) {
+  if (!user || user.isDeleted) {
     const error = AppError.create("Email Not found", 404, "Fail");
     return next(error);
   }
@@ -133,30 +127,15 @@ const refreshAccessToken = (req, res, next) => {
 const forgetPassword = async (req, res, next) => {
   const { email } = req.body;
   const user = await User.findOne({ email });
-  if (!user) {
+  if (!user || user.isDeleted) {
     const error = AppError.create("Email Not found", 404, "Fail");
     return next(error);
   }
   const token = v4();
   user.resetPasswordToken = token;
   await user.save();
-  const output = `
-    <div style="max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);">
-        <div style="text-align: center;">
-            <h1>Password Reset Request</h1>
-        </div>
-        <div style="margin-top: 20px;">
-            <p>Hi ${user.username},</p>
-            <p>We received a request to reset your password. Click the button below to reset your password:</p>
-            <a href="http://localhost:3000/api/auth/resetPassword/${user.resetPasswordToken}" style="display: inline-block; padding: 10px 20px; color: #ffffff; background-color: #007bff; border-radius: 5px; text-decoration: none;">Reset Password</a>
-            <p>If you did not request a password reset, please ignore this email.</p>
-        </div>
-        <div style="margin-top: 20px; text-align: center; color: #777777;">
-            <p>&copy; 2025 FitMate. All rights reserved.</p>
-        </div>
-    </div>
-`;
-  await sendMail(user, output);
+  const output = forgetPasswordEmail(user.username, user.resetPasswordToken);
+  await sendMail(user, output, "Reset Password Request");
   res.status(200).json({
     status: "Success",
     message: "Password Reset Email sent. Please Check Your Inbox",
@@ -167,7 +146,7 @@ const forgetPassword = async (req, res, next) => {
 const getResetPassword = (req, res, next) => {
   const token = req.params.token;
   const user = User.findOne({ resetPasswordToken: token });
-  if (!user) {
+  if (!user || user.isDeleted) {
     const error = AppError.create(
       "Invalid or Expired reset password token",
       400,
@@ -191,6 +170,16 @@ const postResetPassword = async (req, res, next) => {
     { password: hashedPassword, resetPasswordToken: "" },
     { new: true }
   );
+  if (!user || user.isDeleted) {
+    const error = AppError.create(
+      "Invalid or Expired reset password token",
+      400,
+      "FAIL"
+    );
+    return next(error);
+  }
+  user.resetPasswordToken = "";
+  await user.save();
   res.status(200).json({
     status: "succeess",
     message: "Your Password has been reset successfully",
@@ -200,8 +189,8 @@ const postResetPassword = async (req, res, next) => {
 
 const confirmMail = async (req, res, next) => {
   const token = req.params.token;
-  const user = await User.findOne({ registerationToken: token });
-  if (!user) {
+  const user = await User.findOne({ verificationToken: token });
+  if (!user || user.isDeleted) {
     const error = AppError.create("This token is not correct", 400, "Fail");
     return next(error);
   }
@@ -218,7 +207,7 @@ const confirmMail = async (req, res, next) => {
     isConfirmed: true,
     role: user.role,
   });
-  user.registerationToken = "";
+  user.verificationToken = "";
   user.isConfirmed = true;
   user.refreshToken = refreshToken;
 
@@ -256,21 +245,132 @@ const redirect = async (req, res) => {
   });
 };
 
-const logout = async (req, res, next) => {
-  const user = await User.findById(req.user.id);
-  if (!user) {
-    const error = AppError.create("User not found", 404, "FAIL");
-    return next(error);
+const updateEmail = async (req, res, next) => {
+  const userId = req.user.id;
+  const { email } = req.body;
+
+  if (!email) {
+    return next(AppError.create("Email is required", 400, "FAIL"));
   }
-  user.refreshToken = "";
+
+  const user = await User.findById(userId);
+  if (!user) {
+    return next(AppError.create("User not found", 404, "FAIL"));
+  }
+  const existingUser = await User.findOne({ email });
+  if (existingUser && existingUser._id.toString() !== userId) {
+    return next(AppError.create("Email already exists", 400, "FAIL"));
+  }
+  if (user.email === email) {
+    return next(
+      AppError.create("New email is the same as current email", 400, "FAIL")
+    );
+  }
+  user.verificationToken = v4();
+  user.isConfirmed = false;
+  user.email = email;
   await user.save();
-  req.user = null;
-  revokeAccessToken(req.headers.authorization.split(" ")[1]);
+  const output = confirmUpdateEmail(user.username, user.verificationToken);
+  await sendMail(user, output, "Email Update Verification");
 
   res.status(200).json({
     status: "success",
-    message: "Logged out successfully",
-    data: null,
+    message: "Verification email sent to new email address",
+    data: { email: user.email },
+  });
+};
+
+const verifyEmail = async (req, res, next) => {
+  const token = req.params.token;
+  const user = await User.findOne({ verificationToken: token });
+  if (!user) {
+    const error = AppError.create(
+      "Invalid or expired verification token",
+      400,
+      "FAIL"
+    );
+    return next(error);
+  }
+  user.verificationToken = "";
+  user.isConfirmed = true;
+  await user.save();
+  res.status(200).json({
+    status: "success",
+    message: "Email verified successfully",
+    data: { user },
+  });
+};
+
+const logout = async (req, res, next) => {
+  const token = req.headers.authorization?.split(" ")[1];
+
+  if (!token) {
+    return next(AppError.create("No token provided", 401, "fail"));
+  }
+
+  let decoded;
+  try {
+    decoded = jwt.verify(token, process.env.ACCESS_TOKEN_KEY);
+  } catch (err) {
+    return next(AppError.create("Invalid token", 403, "fail"));
+  }
+
+  await casheService.blacklistToken(token, decoded.exp);
+  req.user = undefined;
+
+  res.status(200).json({
+    status: "success",
+    message: "User logged out successfully",
+  });
+};
+
+const deleteAccount = async (req, res, next) => {
+  const userId = req.user.id;
+  const { password } = req.body;
+
+  if (!password) {
+    return next(AppError.create("Password is required", 400, "fail"));
+  }
+
+  const user = await User.findById(userId);
+  if (!user || user.isDeleted) {
+    return next(AppError.create("User not found", 404, "fail"));
+  }
+
+  const isMatch = await bcrypt.compare(password, user.password);
+  if (!isMatch) {
+    return next(AppError.create("Incorrect password", 401, "fail"));
+  }
+
+  // Soft delete
+  user.isDeleted = true;
+  user.deletedAt = new Date();
+
+  const token = req.headers.authorization?.split(" ")[1];
+
+  if (!token) {
+    return next(AppError.create("No token provided", 401, "fail"));
+  }
+
+  let decoded;
+  try {
+    decoded = jwt.verify(token, process.env.ACCESS_TOKEN_KEY);
+  } catch (err) {
+    return next(AppError.create("Invalid token", 403, "fail"));
+  }
+
+  await casheService.blacklistToken(token, decoded.exp);
+  // Clear the refresh token from the user
+  user.refreshToken = "";
+  await user.save();
+  req.user = undefined;
+  // Send goodbye email
+  const emailContent = goodbyeEmail(user.username);
+  await sendMail(user, emailContent, "Your FitMate Account Has Been Deleted");
+
+  res.status(200).json({
+    status: "success",
+    message: "Your account has been deleted. Goodbye!",
   });
 };
 
@@ -284,4 +384,7 @@ module.exports = {
   forgetPassword,
   getResetPassword,
   postResetPassword,
+  updateEmail,
+  verifyEmail,
+  deleteAccount,
 };

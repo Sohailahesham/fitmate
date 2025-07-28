@@ -13,17 +13,20 @@ const {
   forgetPassword,
   getResetPassword,
   postResetPassword,
+  updateEmail,
+  deleteAccount,
 } = require("../controllers/authController");
 
 const { validator } = require("../middlewares/validation");
 const passport = require("passport");
-const { isTokenRevoked } = require("../middlewares/isTokenRevoked");
 const {
   registerValidationArray,
   resetPasswordValidationArray,
   loginValidationArray,
   forgetPasswordValidationArray,
+  updateEmailValidationArray,
 } = require("../middlewares/validationArrays");
+const { loginLimiter } = require("../middlewares/rateLimit");
 
 router
   .route("/register")
@@ -31,7 +34,7 @@ router
 router.post("/token", functionWrapper(refreshAccessToken));
 router
   .route("/login")
-  .post(loginValidationArray, validator, asyncWrapper(login));
+  .post(loginValidationArray, validator, loginLimiter, asyncWrapper(login));
 
 router.get("/register/confirm/:token", asyncWrapper(confirmMail));
 
@@ -80,6 +83,17 @@ router
     asyncWrapper(postResetPassword)
   );
 
-router.post("/logout", verifyToken, isTokenRevoked, asyncWrapper(logout));
+router.patch(
+  "/email",
+  verifyToken,
+  updateEmailValidationArray,
+  validator,
+  asyncWrapper(updateEmail)
+);
+router.get("/verify-email/:token", asyncWrapper(confirmMail));
+
+router.post("/logout", verifyToken, asyncWrapper(logout));
+
+router.patch("/account", verifyToken, asyncWrapper(deleteAccount));
 
 module.exports = router;
