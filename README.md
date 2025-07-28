@@ -7,6 +7,7 @@ FitMate is a personalized health and wellness application that helps users track
 ## 📁 Project Structure
 
 backend/
+
 |
 
 ├── config/ # OAuth2, Passport.js, and other configs
@@ -114,8 +115,8 @@ FitMate backend is ready for Vercel deployment. See vercel.json for route setup.
 
 ## 👥 Contributors
 
-**Sohaila Hesham** 
-**Samer Yousry**
+- **Sohaila Hesham** 
+- **Samer Yousry**
 
 ---
 
