@@ -1,567 +1,3362 @@
 {
-    "openapi": "3.0.0",
-    "info": {
-      "title": "Authentication API",
-      "description": "API for user authentication, registration, password management, and OAuth integration.",
-      "version": "1.0.0"
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Fitness API - Complete Endpoints",
+    "version": "1.0.0",
+    "description": "API for managing fitness exercises and workouts"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000/api",
+      "description": "FitMate server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Exercises",
+      "description": "Endpoints for managing exercises"
     },
-    "servers": [
-      {
-        "url": "http://localhost:3000/api/auth",
-        "description": "Local development server"
-      }
-    ],
-    "paths": {
-      "/register": {
-        "post": {
-          "summary": "Register a new user",
-          "description": "Registers a new user with the provided details and sends a confirmation email.",
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/RegisterUser"
-                }
-              }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "User registered successfully. Confirmation email sent.",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/RegisterResponse"
-                  }
-                }
-              }
-            },
-            "409": {
-              "description": "Email already exists."
-            },
-            "400": {
-              "description": "Invalid input data."
-            }
-          }
-        }
-      },
-      "/register/confirm/{token}": {
-        "get": {
-          "summary": "Confirm user email",
-          "description": "Confirms a user's email address using the provided token and generates access and refresh tokens.",
-          "parameters": [
-            {
-              "name": "token",
-              "in": "path",
-              "required": true,
+    {
+      "name": "Workouts",
+      "description": "Endpoints for managing workout programs"
+    },
+    {
+      "name": "User Workouts",
+      "description": "Endpoints for user-specific workout operations"
+    },
+    {
+      "name": "User Authentication",
+      "description": "Endpoints for user registration, login, logout, and session management"
+    },
+    {
+      "name": "User Goals & Information",
+      "description": "Endpoints for users to create, read, update, and delete personal goals and informational posts"
+    },
+    {
+      "name": "Admin User Management",
+      "description": "Endpoints for administrators to view, update, and manage user accounts and permissions"
+    },
+    {
+      "name": "Profile",
+      "description": "User profile operations"
+    }
+  ],
+  "paths": {
+    "/auth/register": {
+      "post": {
+        "tags": ["User Authentication"],
+        "summary": "Register a new user",
+        "description": "Registers a new user with the provided details and sends a confirmation email.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
               "schema": {
-                "type": "string"
+                "$ref": "#/components/schemas/RegisterUser"
               }
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "Email confirmed successfully. Tokens generated.",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/ConfirmEmailResponse"
-                  }
-                }
-              }
-            },
-            "400": {
-              "description": "Invalid or expired token."
-            }
-          }
-        }
-      },
-      "/token": {
-        "post": {
-          "summary": "Refresh access token",
-          "description": "Generates a new access token using a valid refresh token.",
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/RefreshTokenRequest"
-                }
-              }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Access token refreshed successfully.",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/RefreshTokenResponse"
-                  }
-                }
-              }
-            },
-            "401": {
-              "description": "Unauthorized: Token is missing."
-            },
-            "403": {
-              "description": "Forbidden: Invalid token."
-            }
-          }
-        }
-      },
-      "/login": {
-        "post": {
-          "summary": "User login",
-          "description": "Authenticates a user and returns access and refresh tokens.",
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/LoginUser"
-                }
-              }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Login successful. Tokens generated.",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/LoginResponse"
-                  }
-                }
-              }
-            },
-            "404": {
-              "description": "Email not found."
-            },
-            "401": {
-              "description": "Incorrect password."
-            },
-            "403": {
-              "description": "Email not confirmed."
-            }
-          }
-        }
-      },
-      "/google": {
-        "get": {
-          "summary": "Google OAuth login",
-          "description": "Redirects the user to Google for OAuth authentication.",
-          "responses": {
-            "302": {
-              "description": "Redirect to Google OAuth."
-            }
-          }
-        }
-      },
-      "/google/callback": {
-        "get": {
-          "summary": "Google OAuth callback",
-          "description": "Handles the callback from Google OAuth and authenticates the user.",
-          "responses": {
-            "200": {
-              "description": "Authenticated successfully. Tokens generated.",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/OAuthResponse"
-                  }
-                }
-              }
-            },
-            "401": {
-              "description": "Authentication failed."
-            }
-          }
-        }
-      },
-      "/facebook": {
-        "get": {
-          "summary": "Facebook OAuth login",
-          "description": "Redirects the user to Facebook for OAuth authentication.",
-          "responses": {
-            "302": {
-              "description": "Redirect to Facebook OAuth."
-            }
-          }
-        }
-      },
-      "/facebook/callback": {
-        "get": {
-          "summary": "Facebook OAuth callback",
-          "description": "Handles the callback from Facebook OAuth and authenticates the user.",
-          "responses": {
-            "200": {
-              "description": "Authenticated successfully. Tokens generated.",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/OAuthResponse"
-                  }
-                }
-              }
-            },
-            "401": {
-              "description": "Authentication failed."
-            }
-          }
-        }
-      },
-      "/logout": {
-        "post": {
-          "summary": "User logout",
-          "description": "Logs out the user and revokes the access token.",
-          "security": [
-            {
-              "BearerAuth": []
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "Logged out successfully."
-            },
-            "404": {
-              "description": "User not found."
-            }
-          }
-        }
-      },
-      "/resetPassword": {
-        "post": {
-          "summary": "Request password reset",
-          "description": "Sends a password reset link to the user's email.",
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ForgetPasswordRequest"
-                }
-              }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Password reset email sent. Check your inbox."
-            },
-            "404": {
-              "description": "Email not found."
-            }
-          }
-        }
-      },
-      "/resetPassword/{token}": {
-        "get": {
-          "summary": "Verify password reset token",
-          "description": "Verifies the password reset token.",
-          "parameters": [
-            {
-              "name": "token",
-              "in": "path",
-              "required": true,
-              "schema": {
-                "type": "string"
-              }
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "Token is valid. Proceed to reset password."
-            },
-            "400": {
-              "description": "Invalid or expired token."
             }
           }
         },
-        "post": {
-          "summary": "Reset user password",
-          "description": "Resets the user's password using the provided token.",
-          "parameters": [
-            {
-              "name": "token",
-              "in": "path",
-              "required": true,
-              "schema": {
-                "type": "string"
-              }
-            }
-          ],
-          "requestBody": {
-            "required": true,
+        "responses": {
+          "200": {
+            "description": "User registered successfully. Confirmation email sent.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ResetPasswordRequest"
+                  "$ref": "#/components/schemas/RegisterResponse"
                 }
               }
             }
           },
-          "responses": {
-            "200": {
-              "description": "Password reset successfully."
-            },
-            "400": {
-              "description": "Invalid or expired token."
-            }
+          "409": {
+            "description": "Email already exists."
+          },
+          "400": {
+            "description": "Invalid input data."
           }
         }
       }
     },
-    "components": {
-      "schemas": {
-        "RegisterUser": {
-          "type": "object",
-          "properties": {
-            "username": {
-              "type": "string",
-              "minLength": 3,
-              "pattern": "^[A-Za-z0-9\\s]+$",
-              "example": "john_doe"
-            },
-            "email": {
-              "type": "string",
-              "format": "email",
-              "example": "john.doe@example.com"
-            },
-            "password": {
-              "type": "string",
-              "minLength": 8,
-              "pattern": "^(?=.[a-z])(?=.[A-Z])(?=.\\d)(?=.[\\w]).+$",
-              "example": "Password_123"
-            },
-            "confirmPassword": {
-              "type": "string",
-              "minLength": 8,
-              "pattern": "^(?=.[a-z])(?=.[A-Z])(?=.\\d)(?=.[\\w]).+$",
-              "example": "Password_123"
+    "/auth/register/confirm/{token}": {
+      "get": {
+        "tags": ["User Authentication"],
+        "summary": "Confirm user email",
+        "description": "Confirms a user's email address using the provided token and generates access and refresh tokens.",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Email confirmed successfully. Tokens generated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConfirmEmailResponse"
+                }
+              }
             }
           },
-          "required": ["username", "email", "password", "confirmPassword"]
+          "400": {
+            "description": "Invalid or expired token."
+          }
+        }
+      }
+    },
+    "/auth/token": {
+      "post": {
+        "tags": ["User Authentication"],
+        "summary": "Refresh access token",
+        "description": "Generates a new access token using a valid refresh token.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshTokenRequest"
+              }
+            }
+          }
         },
-        "RegisterResponse": {
-          "type": "object",
-          "properties": {
-            "status": {
-              "type": "string",
-              "example": "success"
-            },
-            "message": {
-              "type": "string",
-              "example": "Please, confirm your email"
-            },
-            "data": {
-              "type": "object",
-              "properties": {
-                "user": {
-                  "$ref": "#/components/schemas/User"
+        "responses": {
+          "200": {
+            "description": "Access token refreshed successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefreshTokenResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized: Token is missing."
+          },
+          "403": {
+            "description": "Forbidden: Invalid token."
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": ["User Authentication"],
+        "summary": "User login",
+        "description": "Authenticates a user and returns access and refresh tokens.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginUser"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful. Tokens generated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Email not found."
+          },
+          "401": {
+            "description": "Incorrect password."
+          },
+          "403": {
+            "description": "Email not confirmed."
+          }
+        }
+      }
+    },
+    "/auth/google": {
+      "get": {
+        "tags": ["User Authentication"],
+        "summary": "Google OAuth login",
+        "description": "Redirects the user to Google for OAuth authentication.",
+        "responses": {
+          "302": {
+            "description": "Redirect to Google OAuth."
+          }
+        }
+      }
+    },
+    "/auth/google/callback": {
+      "get": {
+        "tags": ["User Authentication"],
+        "summary": "Google OAuth callback",
+        "description": "Handles the callback from Google OAuth and authenticates the user.",
+        "responses": {
+          "200": {
+            "description": "Authenticated successfully. Tokens generated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed."
+          }
+        }
+      }
+    },
+    "/auth/facebook": {
+      "get": {
+        "tags": ["User Authentication"],
+        "summary": "Facebook OAuth login",
+        "description": "Redirects the user to Facebook for OAuth authentication.",
+        "responses": {
+          "302": {
+            "description": "Redirect to Facebook OAuth."
+          }
+        }
+      }
+    },
+    "/auth/facebook/callback": {
+      "get": {
+        "tags": ["User Authentication"],
+        "summary": "Facebook OAuth callback",
+        "description": "Handles the callback from Facebook OAuth and authenticates the user.",
+        "responses": {
+          "200": {
+            "description": "Authenticated successfully. Tokens generated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed."
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "tags": ["User Authentication"],
+        "summary": "Logout user",
+        "responses": {
+          "200": {
+            "description": "Logged out successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string" },
+                    "message": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No token provided"
+          },
+          "403": {
+            "description": "Invalid token"
+          }
+        }
+      }
+    },
+    "/auth/resetPassword": {
+      "post": {
+        "tags": ["User Authentication"],
+        "summary": "Request password reset",
+        "description": "Sends a password reset link to the user's email.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForgetPasswordRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password reset email sent. Check your inbox."
+          },
+          "404": {
+            "description": "Email not found."
+          }
+        }
+      }
+    },
+    "/auth/resetPassword/{token}": {
+      "get": {
+        "tags": ["User Authentication"],
+        "summary": "Verify password reset token",
+        "description": "Verifies the password reset token.",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Token is valid. Proceed to reset password."
+          },
+          "400": {
+            "description": "Invalid or expired token."
+          }
+        }
+      },
+      "post": {
+        "tags": ["User Authentication"],
+        "summary": "Reset user password",
+        "description": "Resets the user's password using the provided token.",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password reset successfully."
+          },
+          "400": {
+            "description": "Invalid or expired token."
+          }
+        }
+      }
+    },
+    "/auth/email": {
+      "patch": {
+        "tags": ["User Authentication"],
+        "summary": "Update user email",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "new@example.com"
+                  }
+                },
+                "required": ["email"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Verification email sent",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "message": { "type": "string" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "email": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error / Email exists / Same email"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      }
+    },
+    "/auth/verify-email/{token}": {
+      "get": {
+        "tags": ["User Authentication"],
+        "summary": "Verify email with token",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Email verified successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string" },
+                    "message": { "type": "string" },
+                    "data": {
+                      "$ref": "#/components/schemas/UserProfile"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid/expired token"
+          }
+        }
+      }
+    },
+
+    "/auth/account": {
+      "patch": {
+        "tags": ["User Authentication"],
+        "summary": "Delete user account (soft delete)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "example": "yourSecurePassword123"
+                  }
+                },
+                "required": ["password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Account deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string" },
+                    "message": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Password required"
+          },
+          "401": {
+            "description": "Incorrect password / No token"
+          },
+          "403": {
+            "description": "Invalid token"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      }
+    },
+    "/users/info": {
+      "put": {
+        "tags": ["User Goals & Information"],
+        "summary": "Post user information",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Information"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User information saved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string" },
+                    "message": { "type": "string" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/goal": {
+      "put": {
+        "tags": ["User Goals & Information"],
+        "summary": "Post user goal",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "goal": {
+                    "type": "string"
+                  }
                 }
               }
             }
           }
         },
-        "ConfirmEmailResponse": {
-          "type": "object",
-          "properties": {
-            "status": {
-              "type": "string",
-              "example": "success"
-            },
-            "message": {
-              "type": "string",
-              "example": "Email is confirmed"
-            },
-            "data": {
-              "type": "object",
-              "properties": {
-                "accessToken": {
-                  "type": "string",
-                  "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-                },
-                "refreshToken": {
-                  "type": "string",
-                  "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-                },
-                "user": {
-                  "$ref": "#/components/schemas/User"
+        "responses": {
+          "200": {
+            "description": "Goal saved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string" },
+                    "message": { "type": "string" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/activity": {
+      "put": {
+        "tags": ["User Goals & Information"],
+        "summary": "Post user activity level",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "activityLevel": {
+                    "type": "string"
+                  }
                 }
               }
             }
           }
         },
-        "RefreshTokenRequest": {
-          "type": "object",
-          "properties": {
-            "token": {
-              "type": "string",
-              "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        "responses": {
+          "200": {
+            "description": "User activity level saved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string" },
+                    "message": { "type": "string" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
             }
           },
-          "required": ["token"]
-        },
-        "RefreshTokenResponse": {
-          "type": "object",
-          "properties": {
-            "status": {
-              "type": "string",
-              "example": "success"
-            },
-            "message": {
-              "type": "string",
-              "example": "New access token generated successfully"
-            },
-            "data": {
-              "type": "object",
-              "properties": {
-                "accessToken": {
-                  "type": "string",
-                  "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorResponse"
                 }
               }
             }
           }
-        },
-        "LoginUser": {
-          "type": "object",
-          "properties": {
-            "email": {
-              "type": "string",
-              "format": "email",
-              "example": "john.doe@example.com"
-            },
-            "password": {
-              "type": "string",
-              "example": "password123"
+        }
+      }
+    },
+    "/users": {
+      "get": {
+        "tags": ["Admin User Management"],
+        "summary": "Get all users",
+        "description": "Retrieve a paginated list of users (Admin only)",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Page number",
+            "schema": {
+              "type": "integer",
+              "default": 1
             }
           },
-          "required": ["email", "password"]
-        },
-        "LoginResponse": {
-          "type": "object",
-          "properties": {
-            "status": {
-              "type": "string",
-              "example": "success"
-            },
-            "message": {
-              "type": "string",
-              "example": "Login successful"
-            },
-            "data": {
-              "type": "object",
-              "properties": {
-                "accessToken": {
-                  "type": "string",
-                  "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-                },
-                "refreshToken": {
-                  "type": "string",
-                  "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Items per page",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "email",
+            "in": "query",
+            "description": "Filter by email",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsersListResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
           }
-        },
-        "OAuthResponse": {
-          "type": "object",
-          "properties": {
-            "status": {
+        }
+      }
+    },
+    "/users/email/{email}": {
+      "delete": {
+        "tags": ["Admin User Management"],
+        "summary": "Delete user by email",
+        "description": "Permanently delete a user by their email (Admin only)",
+        "parameters": [
+          {
+            "name": "email",
+            "in": "path",
+            "required": true,
+            "description": "User's email address",
+            "schema": {
               "type": "string",
-              "example": "success"
-            },
-            "message": {
-              "type": "string",
-              "example": "Authenticated successfully"
-            },
-            "data": {
-              "type": "object",
-              "properties": {
-                "accessToken": {
-                  "type": "string",
-                  "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-                },
-                "refreshToken": {
-                  "type": "string",
-                  "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-                },
-                "user": {
-                  "$ref": "#/components/schemas/User"
+              "format": "email"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid email format",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Cannot delete admin user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
           }
-        },
-        "ForgetPasswordRequest": {
-          "type": "object",
-          "properties": {
-            "email": {
+        }
+      }
+    },
+    "/users/{userId}": {
+      "get": {
+        "tags": ["Admin User Management"],
+        "summary": "Get user by ID",
+        "description": "Retrieve a single user by their ID (Admin only)",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "description": "User ID",
+            "schema": {
               "type": "string",
-              "format": "email",
-              "example": "john.doe@example.com"
+              "format": "mongo-id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
             }
           },
-          "required": ["email"]
-        },
-        "ResetPasswordRequest": {
-          "type": "object",
-          "properties": {
-            "newPassword": {
-              "type": "string",
-              "minLength": 8,
-              "pattern": "^(?=.[a-z])(?=.[A-Z])(?=.\\d)(?=.[\\w]).+$",
-              "example": "Password_123"
-            },
-            "confirmNewPassword": {
-              "type": "string",
-              "minLength": 8,
-              "pattern": "^(?=.[a-z])(?=.[A-Z])(?=.\\d)(?=.[\\w]).+$",
-              "example": "Password_123"
+          "400": {
+            "description": "Invalid user ID",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
             }
           },
-          "required": ["newPassword", "confirmNewPassword"]
-        },
-        "User": {
-          "type": "object",
-          "properties": {
-            "id": {
-              "type": "string",
-              "example": "64f7a9b2b3c4d5e6f7a8b9c0"
-            },
-            "username": {
-              "type": "string",
-              "example": "john_doe"
-            },
-            "email": {
-              "type": "string",
-              "format": "email",
-              "example": "john.doe@example.com"
-            },
-            "refreshToken": {
-                "type": "string"
-            }
-            ,
-            "role": {
-              "type": "string",
-              "enum": ["ADMIN", "SUBSCRIBER"],
-              "example": "SUBSCRIBER"
-            },
-            "isConfirmed": {
-              "type": "boolean",
-              "example": true
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
             }
           }
         }
       },
-      "securitySchemes": {
-        "BearerAuth": {
-          "type": "http",
-          "scheme": "bearer",
-          "bearerFormat": "JWT"
+      "delete": {
+        "tags": ["Admin User Management"],
+        "summary": "Delete user by ID",
+        "description": "Permanently delete a user by their ID (Admin only)",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "description": "User ID",
+            "schema": {
+              "type": "string",
+              "format": "mongo-id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid user ID",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Cannot delete admin user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/{userId}/isDeleted": {
+      "patch": {
+        "tags": ["Admin User Management"],
+        "summary": "Update user deletion status",
+        "description": "Soft delete or restore a user (Admin only)",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "description": "User ID",
+            "schema": {
+              "type": "string",
+              "format": "mongo-id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "isDeleted": {
+                    "type": "boolean",
+                    "description": "Set to true to soft-delete, false to restore"
+                  }
+                },
+                "required": ["isDeleted"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User status updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/{userId}/role": {
+      "patch": {
+        "tags": ["Admin User Management"],
+        "summary": "Update user role",
+        "description": "Change a user's role (Admin only)",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "description": "User ID",
+            "schema": {
+              "type": "string",
+              "format": "mongo-id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "role": {
+                    "type": "string",
+                    "enum": ["ADMIN", "SUBSCRIBER"],
+                    "description": "New role for the user"
+                  }
+                },
+                "required": ["role"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Role updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid role specified",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Cannot change admin role",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/exercises": {
+      "get": {
+        "tags": ["Exercises"],
+        "summary": "Get all exercises with filtering options",
+        "parameters": [
+          {
+            "name": "category",
+            "in": "query",
+            "description": "Filter by exercise category",
+            "schema": {
+              "type": "string",
+              "enum": ["Cardio", "Strength", "Flexibility", "Balance"]
+            }
+          },
+          {
+            "name": "bodyPart",
+            "in": "query",
+            "description": "Filter by body part (upper, lower, core, cardio)",
+            "schema": {
+              "type": "string",
+              "enum": ["upper", "lower", "core", "cardio"]
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "description": "Search term for exercise name, muscles or equipment",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "description": "Field to sort by",
+            "schema": {
+              "type": "string",
+              "enum": ["difficulty", "duration", "createdAt"]
+            }
+          },
+          {
+            "name": "sortOrder",
+            "in": "query",
+            "description": "Sort order",
+            "schema": {
+              "type": "string",
+              "enum": ["asc", "desc"],
+              "default": "desc"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Page number",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Items per page",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExerciseListResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No exercises found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Exercises"],
+        "summary": "Add a new exercise",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/ExerciseInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Exercise created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SingleExerciseResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Exercise already exists or invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/exercises/popular": {
+      "get": {
+        "tags": ["Exercises"],
+        "summary": "Get popular exercises",
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PopularExercisesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/exercises/{exerciseId}": {
+      "get": {
+        "tags": ["Exercises"],
+        "summary": "Get exercise by ID",
+        "parameters": [
+          {
+            "name": "exerciseId",
+            "in": "path",
+            "required": true,
+            "description": "ID of exercise to return",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExerciseWithRelatedResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid ID supplied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Exercise not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": ["Exercises"],
+        "summary": "Update an existing exercise",
+        "parameters": [
+          {
+            "name": "exerciseId",
+            "in": "path",
+            "required": true,
+            "description": "ID of exercise to update",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/ExerciseInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Exercise updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SingleExerciseResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid ID or exercise name already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Exercise not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Exercises"],
+        "summary": "Delete an exercise",
+        "parameters": [
+          {
+            "name": "exerciseId",
+            "in": "path",
+            "required": true,
+            "description": "ID of exercise to delete",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Exercise deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid ID supplied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Exercise not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/workouts": {
+      "get": {
+        "tags": ["Workouts"],
+        "summary": "Get all workouts with pagination",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Page number",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Items per page",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkoutListResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No workouts found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Workouts"],
+        "summary": "Create a new workout program (Admin only)",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkoutInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Workout created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SingleWorkoutResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Workout already exists or invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/workouts/stats": {
+      "get": {
+        "tags": ["User Workouts"],
+        "summary": "Get user workout statistics",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkoutStatsResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/workouts/today": {
+      "get": {
+        "tags": ["User Workouts"],
+        "summary": "Get today's workouts for the user",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Page number",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TodayWorkoutResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/workouts/history": {
+      "get": {
+        "tags": ["User Workouts"],
+        "summary": "Get user's workout history",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkoutHistoryResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/workouts/user": {
+      "post": {
+        "tags": ["User Workouts"],
+        "summary": "Assign a workout to user",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "workoutId": {
+                    "type": "string",
+                    "example": "60f7b1b9b9b9b9b9b9b9b9b9"
+                  }
+                },
+                "required": ["workoutId"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Workout assigned successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserWorkoutResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Workout already active or invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Workout or user not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/workouts/{workoutId}/status": {
+      "put": {
+        "tags": ["User Workouts"],
+        "summary": "Update workout status (active/completed/paused)",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "workoutId",
+            "in": "path",
+            "required": true,
+            "description": "ID of workout to update",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "completionStatus": {
+                    "type": "string",
+                    "enum": ["active", "completed", "paused"],
+                    "example": "completed"
+                  }
+                },
+                "required": ["completionStatus"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Status updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserWorkoutResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Workout not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/workouts/{workoutId}": {
+      "put": {
+        "tags": ["Workouts"],
+        "summary": "Update workout details (Admin only)",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "workoutId",
+            "in": "path",
+            "required": true,
+            "description": "ID of workout to update",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkoutInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Workout updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SingleWorkoutResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Workout not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Workouts"],
+        "summary": "Delete a workout (Admin only)",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "workoutId",
+            "in": "path",
+            "required": true,
+            "description": "ID of workout to delete",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Workout deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid ID supplied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Workout not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/workouts/{workoutId}/exercises": {
+      "post": {
+        "tags": ["Workouts"],
+        "summary": "Add exercise to workout day (Admin only)",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "workoutId",
+            "in": "path",
+            "required": true,
+            "description": "ID of workout to update",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "exerciseId": {
+                    "type": "string",
+                    "example": "60f7b1b9b9b9b9b9b9b9b9b9"
+                  },
+                  "day": {
+                    "type": "string",
+                    "enum": [
+                      "Monday",
+                      "Tuesday",
+                      "Wednesday",
+                      "Thursday",
+                      "Friday",
+                      "Saturday",
+                      "Sunday"
+                    ],
+                    "example": "Monday"
+                  }
+                },
+                "required": ["exerciseId", "day"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Exercise added successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SingleWorkoutResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Exercise already exists in workout day",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Workout or exercise not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/workouts/{workoutId}/exercises/{exerciseId}/complete": {
+      "patch": {
+        "tags": ["User Workouts"],
+        "summary": "Mark exercise as completed for today",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "workoutId",
+            "in": "path",
+            "required": true,
+            "description": "ID of workout containing the exercise",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "exerciseId",
+            "in": "path",
+            "required": true,
+            "description": "ID of exercise to mark as completed",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Exercise marked as completed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompleteExerciseResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Exercise already completed today",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Workout or exercise not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/profile": {
+      "get": {
+        "tags": ["Profile"],
+        "summary": "Get user profile",
+        "responses": {
+          "200": {
+            "description": "User profile retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "message": { "type": "string" },
+                    "data": {
+                      "$ref": "#/components/schemas/UserProfile"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      },
+      "put": {
+        "tags": ["Profile"],
+        "summary": "Update user profile",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProfileRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Profile updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string" },
+                    "message": { "type": "string" },
+                    "data": {
+                      "$ref": "#/components/schemas/UserProfile"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error or username exists"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      }
+    },
+    "/profile/stats": {
+      "get": {
+        "tags": ["Profile"],
+        "summary": "Get health statistics",
+        "responses": {
+          "200": {
+            "description": "Health stats retrieved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthStatsResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      }
+    },
+    "/profile/avatar": {
+      "put": {
+        "tags": ["Profile"],
+        "summary": "Update user avatar",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "avatar": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Avatar updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string" },
+                    "message": { "type": "string" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "avatar": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "No file uploaded"
+          },
+          "404": {
+            "description": "User not found"
+          }
         }
       }
     }
+  },
+  "components": {
+    "schemas": {
+      "RegisterUser": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "minLength": 3,
+            "pattern": "^[A-Za-z0-9\\s]+$",
+            "example": "john_doe"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "john.doe@example.com"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8,
+            "pattern": "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[\\w]).+$",
+            "example": "Password_123"
+          },
+          "confirmPassword": {
+            "type": "string",
+            "minLength": 8,
+            "pattern": "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[\\w]).+$",
+            "example": "Password_123"
+          }
+        },
+        "required": ["username", "email", "password", "confirmPassword"]
+      },
+      "RegisterResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success"
+          },
+          "message": {
+            "type": "string",
+            "example": "Please, confirm your email"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "user": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        }
+      },
+      "ConfirmEmailResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success"
+          },
+          "message": {
+            "type": "string",
+            "example": "Email is confirmed"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "accessToken": {
+                "type": "string",
+                "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+              },
+              "refreshToken": {
+                "type": "string",
+                "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+              },
+              "user": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        }
+      },
+      "RefreshTokenRequest": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          }
+        },
+        "required": ["token"]
+      },
+      "RefreshTokenResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success"
+          },
+          "message": {
+            "type": "string",
+            "example": "New access token generated successfully"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "accessToken": {
+                "type": "string",
+                "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+              }
+            }
+          }
+        }
+      },
+      "LoginUser": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "john.doe@example.com"
+          },
+          "password": {
+            "type": "string",
+            "example": "password123"
+          }
+        },
+        "required": ["email", "password"]
+      },
+      "LoginResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success"
+          },
+          "message": {
+            "type": "string",
+            "example": "Login successful"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "accessToken": {
+                "type": "string",
+                "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+              },
+              "refreshToken": {
+                "type": "string",
+                "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+              }
+            }
+          }
+        }
+      },
+      "OAuthResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success"
+          },
+          "message": {
+            "type": "string",
+            "example": "Authenticated successfully"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "accessToken": {
+                "type": "string",
+                "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+              },
+              "refreshToken": {
+                "type": "string",
+                "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+              },
+              "user": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        }
+      },
+      "ForgetPasswordRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "john.doe@example.com"
+          }
+        },
+        "required": ["email"]
+      },
+      "ResetPasswordRequest": {
+        "type": "object",
+        "properties": {
+          "newPassword": {
+            "type": "string",
+            "minLength": 8,
+            "pattern": "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[\\w]).+$",
+            "example": "Password_123"
+          },
+          "confirmNewPassword": {
+            "type": "string",
+            "minLength": 8,
+            "pattern": "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[\\w]).+$",
+            "example": "Password_123"
+          }
+        },
+        "required": ["newPassword", "confirmNewPassword"]
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "description": "User ID",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "username": {
+            "type": "string",
+            "example": "john_doe"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "john@example.com"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "example": "https://example.com/avatar.jpg"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["ADMIN", "SUBSCRIBER"],
+            "example": "SUBSCRIBER"
+          },
+          "isConfirmed": {
+            "type": "boolean",
+            "example": true
+          },
+          "isDeleted": {
+            "type": "boolean",
+            "example": false
+          },
+          "deletedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2023-01-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2023-01-01T00:00:00Z"
+          },
+          "info": {
+            "$ref": "#/components/schemas/Information"
+          },
+          "goal": {
+            "$ref": "#/components/schemas/UserGoal"
+          },
+          "activityLevel": {
+            "type": "string",
+            "enum": ["none", "light", "moderate", "intense", "extreme"],
+            "example": "moderate"
+          },
+          "workouts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserWorkout"
+            }
+          }
+        }
+      },
+      "Information": {
+        "type": "object",
+        "properties": {
+          "weight": { "type": "number" },
+          "height": { "type": "number" },
+          "targetWeight": { "type": "number" },
+          "birthdate": { "type": "string", "format": "date" },
+          "foodDislikes": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "trainRate": {
+            "type": "string",
+            "enum": ["none", "light", "moderate", "intense", "extreme"]
+          },
+          "budget": {
+            "type": "string",
+            "enum": ["low", "medium", "high"]
+          },
+          "trainingPlace": {
+            "type": "string",
+            "enum": ["home", "gym", "none"]
+          }
+        }
+      },
+      "UserGoal": {
+        "type": "object",
+        "properties": {
+          "goal": {
+            "type": "string",
+            "enum": [
+              "cardio",
+              "diet",
+              "bulk fast",
+              "clean bulk",
+              "maintain weight cutting",
+              "maintain weight keep"
+            ],
+            "example": "clean bulk"
+          },
+          "targetWorkouts": {
+            "type": "number",
+            "example": 4
+          }
+        }
+      },
+      "UsersListResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success"
+          },
+          "message": {
+            "type": "string",
+            "example": "Users retrieved successfully"
+          },
+          "totalUsers": {
+            "type": "integer",
+            "example": 100
+          },
+          "page": {
+            "type": "integer",
+            "example": 1
+          },
+          "limit": {
+            "type": "integer",
+            "example": 10
+          },
+          "hasMore": {
+            "type": "boolean",
+            "example": true
+          },
+          "totalPages": {
+            "type": "integer",
+            "example": 10
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "users": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          }
+        }
+      },
+      "UserResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success"
+          },
+          "message": {
+            "type": "string",
+            "example": "User retrieved successfully"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "user": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        }
+      },
+      "SuccessResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success"
+          },
+          "message": {
+            "type": "string",
+            "example": "Operation completed successfully"
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      },
+      "errorResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "code": {
+            "type": "integer"
+          }
+        },
+        "example": {
+          "status": "error",
+          "message": "An unexpected error occurred.",
+          "code": 500
+        }
+      },
+      "Exercise": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "example": "60f7b1b9b9b9b9b9b9b9b9b9"
+          },
+          "name": {
+            "type": "string",
+            "example": "Push-ups"
+          },
+          "description": {
+            "type": "string",
+            "example": "A classic upper body exercise"
+          },
+          "primaryMuscles": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "Chest",
+                "Back",
+                "Legs",
+                "Arms",
+                "Shoulders",
+                "Core",
+                "Cardio"
+              ]
+            },
+            "example": ["Chest", "Arms"]
+          },
+          "secondaryMuscles": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "Chest",
+                "Back",
+                "Legs",
+                "Arms",
+                "Shoulders",
+                "Core",
+                "Cardio"
+              ]
+            },
+            "example": ["Shoulders"]
+          },
+          "duration": {
+            "type": "string",
+            "example": "5 min"
+          },
+          "difficulty": {
+            "type": "string",
+            "enum": ["Beginner", "Intermediate", "Advanced"],
+            "example": "Beginner"
+          },
+          "instructions": {
+            "type": "string",
+            "example": "Place hands shoulder-width apart..."
+          },
+          "equipment": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": ["none"]
+          },
+          "sets": {
+            "type": "number",
+            "example": 3
+          },
+          "reps": {
+            "type": "string",
+            "example": "10-12"
+          },
+          "rest": {
+            "type": "string",
+            "example": "30 sec"
+          },
+          "category": {
+            "type": "string",
+            "enum": ["Cardio", "Strength", "Flexibility", "Balance"],
+            "example": "Strength"
+          },
+          "completed": {
+            "type": "boolean",
+            "default": false
+          },
+          "variations": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": []
+          },
+          "mediaUrl": {
+            "type": "string",
+            "example": "https://example.com/pushups.jpg"
+          },
+          "usageCount": {
+            "type": "number",
+            "default": 0
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ExerciseInput": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Push-ups"
+          },
+          "description": {
+            "type": "string",
+            "example": "A classic upper body exercise"
+          },
+          "primaryMuscles": {
+            "type": "string",
+            "example": "Chest, Arms"
+          },
+          "secondaryMuscles": {
+            "type": "string",
+            "example": "Shoulders"
+          },
+          "duration": {
+            "type": "string",
+            "example": "5 min"
+          },
+          "difficulty": {
+            "type": "string",
+            "enum": ["Beginner", "Intermediate", "Advanced"],
+            "example": "Beginner"
+          },
+          "instructions": {
+            "type": "string",
+            "example": "Place hands shoulder-width apart..."
+          },
+          "equipment": {
+            "type": "string",
+            "example": "none"
+          },
+          "sets": {
+            "type": "number",
+            "example": 3
+          },
+          "reps": {
+            "type": "string",
+            "example": "10-12"
+          },
+          "rest": {
+            "type": "string",
+            "example": "30 sec"
+          },
+          "category": {
+            "type": "string",
+            "enum": ["Cardio", "Strength", "Flexibility", "Balance"],
+            "example": "Strength"
+          },
+          "media": {
+            "type": "string",
+            "format": "binary",
+            "description": "Exercise image/video"
+          }
+        },
+        "required": [
+          "name",
+          "description",
+          "primaryMuscles",
+          "duration",
+          "difficulty",
+          "instructions",
+          "sets",
+          "reps",
+          "rest",
+          "category"
+        ]
+      },
+      "ExerciseListResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success"
+          },
+          "message": {
+            "type": "string",
+            "example": "Exercises retrieved successfully"
+          },
+          "results": {
+            "type": "number",
+            "example": 10
+          },
+          "totalExercises": {
+            "type": "number",
+            "example": 50
+          },
+          "difficultyLevels": {
+            "type": "number",
+            "example": 3
+          },
+          "currentPage": {
+            "type": "number",
+            "example": 1
+          },
+          "totalDuration": {
+            "type": "object",
+            "properties": {
+              "min": {
+                "type": "string",
+                "example": "5 min"
+              },
+              "max": {
+                "type": "string",
+                "example": "30 min"
+              }
+            }
+          },
+          "totalPages": {
+            "type": "number",
+            "example": 5
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "exercises": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Exercise"
+                }
+              }
+            }
+          }
+        }
+      },
+      "SingleExerciseResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success"
+          },
+          "message": {
+            "type": "string",
+            "example": "Exercise added successfully"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "exercise": {
+                "$ref": "#/components/schemas/Exercise"
+              }
+            }
+          }
+        }
+      },
+      "ExerciseWithRelatedResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success"
+          },
+          "message": {
+            "type": "string",
+            "example": "Exercise retrieved successfully"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "exercise": {
+                "$ref": "#/components/schemas/Exercise"
+              },
+              "relatedExercises": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Exercise"
+                }
+              }
+            }
+          }
+        }
+      },
+      "PopularExercisesResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success"
+          },
+          "message": {
+            "type": "string",
+            "example": "Popular exercises retrieved successfully"
+          },
+          "results": {
+            "type": "number",
+            "example": 4
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "popular": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Exercise"
+                }
+              }
+            }
+          }
+        }
+      },
+      "DeleteResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success"
+          },
+          "message": {
+            "type": "string",
+            "example": "Exercise deleted and removed from workouts successfully"
+          },
+          "data": {
+            "type": "object"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "fail"
+          },
+          "message": {
+            "type": "string",
+            "example": "Exercise not found"
+          },
+          "statusCode": {
+            "type": "integer",
+            "example": 404
+          }
+        }
+      },
+      "Day": {
+        "type": "object",
+        "properties": {
+          "day": {
+            "type": "string",
+            "enum": [
+              "Monday",
+              "Tuesday",
+              "Wednesday",
+              "Thursday",
+              "Friday",
+              "Saturday",
+              "Sunday"
+            ],
+            "example": "Monday"
+          },
+          "exercises": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "example": "60f7b1b9b9b9b9b9b9b9b9b9"
+            }
+          }
+        }
+      },
+      "Workout": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "example": "60f7b1b9b9b9b9b9b9b9b9b9"
+          },
+          "name": {
+            "type": "string",
+            "example": "Beginner Full Body Workout"
+          },
+          "description": {
+            "type": "string",
+            "example": "A 3-day full body workout for beginners"
+          },
+          "rating": {
+            "type": "number",
+            "example": 4.5
+          },
+          "goals": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["Weight Loss", "Muscle Gain", "Endurance", "Flexibility"]
+            },
+            "example": ["Muscle Gain", "Weight Loss"]
+          },
+          "frequency": {
+            "type": "string",
+            "enum": ["3 days/week", "4 days/week", "5 days/week", "Daily"],
+            "example": "3 days/week"
+          },
+          "duration": {
+            "type": "string",
+            "example": "45 min"
+          },
+          "difficulty": {
+            "type": "string",
+            "enum": ["Beginner", "Intermediate", "Advanced"],
+            "example": "Beginner"
+          },
+          "benefits": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "Improved Strength",
+                "Increased Endurance",
+                "Enhanced Flexibility",
+                "Weight Loss",
+                "Muscle Gain",
+                "Better Posture",
+                "Stress Relief"
+              ]
+            },
+            "example": ["Improved Strength", "Weight Loss"]
+          },
+          "days": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Day"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "WorkoutInput": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Beginner Full Body Workout"
+          },
+          "description": {
+            "type": "string",
+            "example": "A 3-day full body workout for beginners"
+          },
+          "goals": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["Weight Loss", "Muscle Gain", "Endurance", "Flexibility"]
+            },
+            "example": ["Muscle Gain", "Weight Loss"]
+          },
+          "frequency": {
+            "type": "string",
+            "enum": ["3 days/week", "4 days/week", "5 days/week", "Daily"],
+            "example": "3 days/week"
+          },
+          "difficulty": {
+            "type": "string",
+            "enum": ["Beginner", "Intermediate", "Advanced"],
+            "example": "Beginner"
+          },
+          "benefits": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "Improved Strength",
+                "Increased Endurance",
+                "Enhanced Flexibility",
+                "Weight Loss",
+                "Muscle Gain",
+                "Better Posture",
+                "Stress Relief"
+              ]
+            },
+            "example": ["Improved Strength", "Weight Loss"]
+          },
+          "days": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Day"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "description",
+          "goals",
+          "frequency",
+          "difficulty",
+          "benefits",
+          "days"
+        ]
+      },
+      "UserWorkout": {
+        "type": "object",
+        "properties": {
+          "workout": {
+            "$ref": "#/components/schemas/Workout"
+          },
+          "completedExercises": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "exerciseId": {
+                  "type": "string",
+                  "example": "60f7b1b9b9b9b9b9b9b9b9b9"
+                },
+                "dateCompleted": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          },
+          "completionStatus": {
+            "type": "string",
+            "enum": ["active", "completed", "paused"],
+            "example": "active"
+          },
+          "completedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "currentDayIndex": {
+            "type": "number",
+            "example": 0
+          }
+        }
+      },
+      "WorkoutListResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success"
+          },
+          "message": {
+            "type": "string",
+            "example": "Workouts retrieved successfully"
+          },
+          "total": {
+            "type": "number",
+            "example": 50
+          },
+          "page": {
+            "type": "number",
+            "example": 1
+          },
+          "pages": {
+            "type": "number",
+            "example": 5
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "workouts": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Workout"
+                }
+              }
+            }
+          }
+        }
+      },
+      "SingleWorkoutResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success"
+          },
+          "message": {
+            "type": "string",
+            "example": "Workout created successfully"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "workout": {
+                "$ref": "#/components/schemas/Workout"
+              }
+            }
+          }
+        }
+      },
+      "UserWorkoutResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success"
+          },
+          "message": {
+            "type": "string",
+            "example": "Workout scheduled successfully"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "workout": {
+                "$ref": "#/components/schemas/UserWorkout"
+              }
+            }
+          }
+        }
+      },
+      "WorkoutStatsResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success"
+          },
+          "message": {
+            "type": "string",
+            "example": "Workout statistics retrieved successfully"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "hoursTrained": {
+                "type": "string",
+                "example": "12.5"
+              },
+              "goalPercentage": {
+                "type": "number",
+                "example": 75
+              },
+              "lastWorkout": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "activeWorkouts": {
+                "type": "number",
+                "example": 2
+              }
+            }
+          }
+        }
+      },
+      "TodayWorkoutResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success"
+          },
+          "message": {
+            "type": "string",
+            "example": "Today's workout retrieved successfully"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "todaysWorkouts": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "workoutId": {
+                      "type": "string",
+                      "example": "60f7b1b9b9b9b9b9b9b9b9b9"
+                    },
+                    "workoutName": {
+                      "type": "string",
+                      "example": "Beginner Full Body"
+                    },
+                    "day": {
+                      "type": "string",
+                      "example": "Monday"
+                    },
+                    "totalExercises": {
+                      "type": "number",
+                      "example": 5
+                    },
+                    "currentPage": {
+                      "type": "number",
+                      "example": 1
+                    },
+                    "totalPages": {
+                      "type": "number",
+                      "example": 2
+                    },
+                    "exercises": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "example": "60f7b1b9b9b9b9b9b9b9b9b9"
+                          },
+                          "name": {
+                            "type": "string",
+                            "example": "Push-ups"
+                          },
+                          "sets": {
+                            "type": "number",
+                            "example": 3
+                          },
+                          "reps": {
+                            "type": "string",
+                            "example": "10-12"
+                          },
+                          "isCompleted": {
+                            "type": "boolean",
+                            "example": false
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "WorkoutHistoryResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success"
+          },
+          "message": {
+            "type": "string",
+            "example": "Workout history retrieved successfully"
+          },
+          "results": {
+            "type": "number",
+            "example": 10
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "history": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "example": "Beginner Full Body"
+                    },
+                    "duration": {
+                      "type": "string",
+                      "example": "45 min"
+                    },
+                    "completedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "completionStatus": {
+                      "type": "string",
+                      "example": "completed"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "CompleteExerciseResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success"
+          },
+          "message": {
+            "type": "string",
+            "example": "Exercise marked as completed successfully"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "userWorkout": {
+                "$ref": "#/components/schemas/UserWorkout"
+              },
+              "exercise": {
+                "type": "object",
+                "properties": {
+                  "exerciseId": {
+                    "type": "string",
+                    "example": "60f7b1b9b9b9b9b9b9b9b9b9"
+                  },
+                  "completed": {
+                    "type": "boolean",
+                    "example": true
+                  },
+                  "dateCompleted": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "UserProfile": {
+        "type": "object",
+        "properties": {
+          "username": { "type": "string" },
+          "email": { "type": "string", "format": "email" },
+          "avatarUrl": { "type": "string" },
+          "role": { "type": "string", "enum": ["ADMIN", "SUBSCRIBER"] },
+          "info": {
+            "$ref": "#/components/schemas/Information"
+          },
+          "goal": {
+            "type": "object",
+            "properties": {
+              "goal": {
+                "type": "string",
+                "enum": [
+                  "cardio",
+                  "diet",
+                  "bulk fast",
+                  "clean bulk",
+                  "maintain weight cutting",
+                  "maintain weight keep"
+                ]
+              },
+              "targetWorkouts": { "type": "number", "default": 4 }
+            }
+          },
+          "activityLevel": {
+            "type": "string",
+            "enum": ["none", "light", "moderate", "intense", "extreme"]
+          },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "UpdateProfileRequest": {
+        "type": "object",
+        "properties": {
+          "username": { "type": "string" },
+          "goal": {
+            "type": "object",
+            "properties": {
+              "goal": {
+                "$ref": "#/components/schemas/UserProfile/properties/goal/properties/goal"
+              },
+              "targetWorkouts": { "type": "number" }
+            }
+          },
+          "activityLevel": {
+            "$ref": "#/components/schemas/UserProfile/properties/activityLevel"
+          },
+          "targetWorkouts": { "type": "number" }
+        }
+      },
+      "HealthStatsResponse": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string" },
+          "message": { "type": "string" },
+          "data": {
+            "type": "object",
+            "properties": {
+              "bmi": { "type": "number" },
+              "dailyCalories": { "type": "number" },
+              "workoutsPerWeek": { "type": "number" },
+              "goalProgress": { "type": "number" }
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
   }
+}
