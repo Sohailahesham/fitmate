@@ -7,18 +7,30 @@ FitMate is a personalized health and wellness application that helps users track
 ## 📁 Project Structure
 
 backend/
-│
+|
+
 ├── config/ # OAuth2, Passport.js, and other configs
+
 ├── controllers/ # Logic for routes: user, auth, workout, etc.
+
 ├── emails/ # Reusable email templates
+
 ├── jobs/ # Background jobs (e.g., cleanup)
+
 ├── middlewares/ # Auth, validation, file upload, etc.
+
 ├── models/ # MongoDB schemas
+
 ├── routes/ # Express routes
+
 ├── services/ # Services like Redis, email
+
 ├── utils/ # Helper functions (JWT, pagination, etc.)
+
 ├── app.js # Express app entry point
+
 ├── swagger.json # API documentation (OpenAPI)
+
 └── vercel.json # Vercel deployment config
 
 
@@ -88,28 +100,27 @@ backend/
 
 ---
 
-📚 API Documentation
+## 📚 API Documentation
+
 Open swagger.json in Swagger Editor or import into Postman to explore endpoints.
 
 ---
 
-🧪 Testing
-Add test examples here when available (e.g., using Jest, Supertest)
+## 📤 Deployment
 
----
-
-📤 Deployment
 FitMate backend is ready for Vercel deployment. See vercel.json for route setup.
 
 ---
 
-👥 Contributors
-Sohaila Hesham
-Samer Yousry
+## 👥 Contributors
+
+**Sohaila Hesham** 
+**Samer Yousry**
 
 ---
 
-📄 License
+## 📄 License
+
 MIT License – feel free to use and contribute!
 
 ---
